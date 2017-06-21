@@ -1,0 +1,4 @@
+/vendor
+/.discovery
+/.idea
+.env

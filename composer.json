@@ -1,0 +1,39 @@
+{
+    "name": "fondbot/fondbot",
+    "description": "FondBot framework.",
+    "license": "MIT",
+    "type": "project",
+    "require": {
+        "php": "^7.1",
+        "fondbot/framework": "^1.0",
+        "fondbot/telegram": "^1.0"
+    },
+    "require-dev": {
+        "fzaninotto/faker": "^1.6",
+        "larapack/dd": "^1.1",
+        "mockery/mockery": "^0.9.9",
+        "phpunit/phpunit": "^6.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bot\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-root-package-install": [
+            "php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ]
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
