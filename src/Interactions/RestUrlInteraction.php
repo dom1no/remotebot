@@ -29,9 +29,14 @@ class RestUrlInteraction extends Interaction
     public function process(ReceivedMessage $reply): void
     {
         $text = $reply->getText();
+        $text = mb_strtolower($text);
+        if (in_array($text, ['отмена', 'cancel', 'exit'])) {
+            $this->sendMessage('Выход.');
+            return;
+        }
 
         $method = (string) strstr($text, ' ', true);
-        $method = strtoupper(trim($method));
+        $method = mb_strtoupper(trim($method));
 
         $url = (string) strstr($text, ' ');
         $url = trim($url);

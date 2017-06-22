@@ -9,13 +9,14 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
 use GuzzleHttp\Client;
+use FondBot\Contracts\Cache;
 
-class SetWebhook extends Command
+class WebhookStart extends Command
 {
     protected function configure(): void
     {
-        $this->setName('telegram:webhook')
-            ->setDescription('Set webhook for telegram bot')
+        $this->setName('webhook:start')
+            ->setDescription('Start server and set webhook for telegram bot')
             ->addArgument('url', InputArgument::OPTIONAL, 'Webhook url')
             ->addOption('tunnel', 't', InputOption::VALUE_OPTIONAL, 'Tunnel defined in ngrok.yml', 'local');
     }
@@ -35,8 +36,20 @@ class SetWebhook extends Command
         if ($process && $process->isRunning()) {
             $this->success('Server running');
 
+            $lastRestartTime = $this->getLastRestartTime();
+            $restart = false;
+
             while ($process->isRunning()) {
                 sleep(3);
+
+                if ($restart = $this->shouldRestart($lastRestartTime)) {
+                    break;
+                }
+            }
+
+            if ($restart) {
+                $this->line('Server restarting');
+                $this->handle();
             }
 
             $this->error('Server was stopped');
@@ -105,11 +118,30 @@ class SetWebhook extends Command
         $apiUrl .= '/channels/telegram';
 
         $guzzle = new Client;
-        $response = $guzzle->get($apiUrl);
+        $response = $guzzle->get($apiUrl, ['proxy' => env('PROXY')]);
         $response = json_decode((string) $response->getBody());
 
         $type = $response->ok ? 'success' : 'error';
 
         $this->{$type}($response->description);
+    }
+
+    /**
+     * Время когда последний раз нужно было рестартовать сервер
+     * @return int|null
+     */
+    public function getLastRestartTime()
+    {
+        return resolve(Cache::class)->get('ngrok.restart') ?: null;
+    }
+
+    /**
+     * Нужно ли рестартовать сервер
+     * @param int $lastRestartTime
+     * @return bool
+     */
+    public function shouldRestart(int $lastRestartTime = null)
+    {
+        return $this->getLastRestartTime() != $lastRestartTime;
     }
 }

@@ -12,8 +12,11 @@ class RestSendService
 {
     /**
      * Формирование и отправка запроса
-     * @param type|string $value
-     * @return mixed
+     * @param string $method
+     * @param string $url
+     * @param array $params
+     * @param string|null $base_uri
+     * @return string
      */
     public function send(string $method, string $url, array $params = [], string $base_uri = null)
     {
@@ -24,7 +27,7 @@ class RestSendService
         $options = [];
         $options['json'] = $params;
 
-        $token = resolve(Cache::class)->get('token');
+        $token = resolve(Cache::class)->get('session.token');
 
         $options['headers'] = ['Authorization' => $token];
         $options['http_errors'] = false;

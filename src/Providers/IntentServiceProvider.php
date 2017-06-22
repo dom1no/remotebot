@@ -6,6 +6,8 @@ namespace Bot\Providers;
 
 use Bot\Intents\ExampleIntent;
 use Bot\Intents\RestIntent;
+use Bot\Intents\PullProjectIntent;
+use Bot\Intents\StoreTokenIntent;
 use FondBot\Conversation\FallbackIntent;
 use FondBot\Conversation\IntentServiceProvider as BaseIntentServiceProvider;
 
@@ -21,6 +23,8 @@ class IntentServiceProvider extends BaseIntentServiceProvider
         return [
             ExampleIntent::class,
             RestIntent::class,
+            PullProjectIntent::class,
+            StoreTokenIntent::class,
         ];
     }
 

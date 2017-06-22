@@ -6,7 +6,8 @@ namespace Bot\Providers;
 
 use FondBot\Toolbelt\Command;
 use FondBot\Toolbelt\ToolbeltServiceProvider as BaseToolbeltServiceProvider;
-use Bot\Commands\SetWebhook;
+use Bot\Commands\WebhookStart;
+use Bot\Commands\WebhookRestart;
 
 class ToolbeltServiceProvider extends BaseToolbeltServiceProvider
 {
@@ -18,7 +19,8 @@ class ToolbeltServiceProvider extends BaseToolbeltServiceProvider
     public function commands(): array
     {
         return [
-            new SetWebhook,
+            new WebhookStart,
+            new WebhookRestart,
         ];
     }
 }

@@ -19,6 +19,7 @@ class ChannelServiceProvider extends BaseChannelServiceProvider
             'telegram' => [
                 'driver' => 'telegram',
                 'token' => env('TELEGRAM_TOKEN'),
+                'proxy' => env('PROXY'),
             ],
             'facebook' => [
                 'driver' => 'facebook',

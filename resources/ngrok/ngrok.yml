@@ -1,0 +1,6 @@
+http_proxy: "http://s-MSK-proxy-01.global.bcs:8080"
+tunnels:
+  local:
+    proto: http
+    addr: 3000
+    name: "telegram"

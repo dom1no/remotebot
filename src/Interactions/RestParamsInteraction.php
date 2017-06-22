@@ -50,6 +50,11 @@ class RestParamsInteraction extends Interaction
             $json = $metadata;
         } else {
             $json = $reply->getText();
+
+            if (in_array(mb_strtolower($json), ['отмена', 'cancel', 'exit'])) {
+                $this->sendMessage('Выход.');
+                return;
+            }
         }
 
         try {
