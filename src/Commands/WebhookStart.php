@@ -18,7 +18,7 @@ class WebhookStart extends Command
         $this->setName('webhook:start')
             ->setDescription('Start server and set webhook for telegram bot')
             ->addArgument('url', InputArgument::OPTIONAL, 'Webhook url')
-            ->addOption('tunnel', 't', InputOption::VALUE_OPTIONAL, 'Tunnel defined in ngrok.yml', 'local');
+            ->addOption('tunnel', 't', InputOption::VALUE_OPTIONAL, 'Tunnel defined in ngrok.yml', 'bot back');
     }
 
     public function handle(): void
@@ -32,6 +32,8 @@ class WebhookStart extends Command
         }
 
         $this->setWebhook($url);
+
+        $this->backTunnel($process);
 
         if ($process && $process->isRunning()) {
             $this->success('Server running');
@@ -65,7 +67,9 @@ class WebhookStart extends Command
      */
     public function startNgrok(string $tunnel)
     {
-        $process = new Process('ngrok start ' . $tunnel . ' --config=' . env('NGROK_CONFIG'));
+        $command = 'ngrok start ' . $tunnel . ' --config=' . env('NGROK_CONFIG');
+
+        $process = new Process($command);
         $result = $process->start();
 
         if ($process->isStarted()) {
@@ -81,24 +85,44 @@ class WebhookStart extends Command
     /**
      * Получение url запущенного тунеля
      * @param Process $process
+     * @param string $bot
      * @return string
      */
-    public function getUrl(Process $process)
+    public function getUrl(Process $process, string $name = 'bot')
     {
         $url = '';
         $guzzle = new Client;
 
         while (! $url && $process->isRunning()) {
-            $tunnels = $guzzle->get('http://localhost:4040/api/tunnels');
+            $tunnels = $guzzle->get('http://localhost:4030/api/tunnels');
 
             $tunnels = collect(json_decode((string) $tunnels->getBody(), true)['tunnels']);
-
-            $url = $tunnels->where('proto', 'https')->first()['public_url'];
+            $url = $tunnels->where('name', $name)->first()['public_url'];
         }
 
         if (! $url) {
-            $this->error('Ngrok not running');
-            exit;
+            $cache = resolve(Cache::class);
+
+            $restartAttempts = $cache->get('ngrok.restart_attemts', 0);
+
+            if ($restartAttempts < 5) {
+                $process->stop();
+                sleep(2);
+
+                $message = 'Ngrok ' . $name . ' not running. Try restart...';
+                $this->error($message);
+                $this->sendMessage($message);
+
+                $cache->store('ngrok.restart_attemts', ++$restartAttempts);
+
+                $this->handle();
+            } else {
+                $cache->forget('ngrok.restart_attemts');
+
+                $message = 'Ngrok ' . $name . ' not running. Exit!';
+                $this->error('Ngrok ' . $name . ' not running. Exit!');
+                $this->sendMessage($message);
+            }
         }
 
         return $url;
@@ -143,5 +167,46 @@ class WebhookStart extends Command
     public function shouldRestart(int $lastRestartTime = null)
     {
         return $this->getLastRestartTime() != $lastRestartTime;
+    }
+
+    /**
+     * Отправка url для тунеля бэка
+     * @param Process $process
+     * @return void
+     */
+    public function backTunnel(Process $process)
+    {
+        $url = $this->getUrl($process, 'back');
+
+        $status = $this->sendMessage('Тунель для бэка: ' . $url);
+
+        $this->{$status}('Tunnel for back started: ' . $url);
+    }
+
+    /**
+     * Отправка сообщения в телеграм
+     * @param string $message
+     * @param int $chatId
+     * @return void
+     */
+    public function sendMessage(string $message, int $chatId = null)
+    {
+        $apiUrl = 'https://api.telegram.org/bot';
+        $apiUrl .= env('TELEGRAM_TOKEN');
+        $apiUrl .= '/sendMessage';
+
+        $payload = [
+            'chat_id' => $chatId ?: env('TELEGRAM_CHAT_ID'),
+            'text' => $message,
+        ];
+
+        $guzzle = new Client;
+        $response = $guzzle->post($apiUrl, ['json' => $payload, 'proxy' => env('PROXY')]);
+
+        $response = json_decode((string) $response->getBody());
+
+        $status = $response->ok ? 'success' : 'error';
+
+        return $status;
     }
 }

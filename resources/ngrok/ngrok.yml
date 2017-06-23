@@ -1,6 +1,11 @@
 http_proxy: "http://s-MSK-proxy-01.global.bcs:8080"
+web_addr: localhost:4030
 tunnels:
-  local:
+  bot:
     proto: http
     addr: 3000
     name: "telegram"
+  back:
+    proto: http
+    addr: 80
+    name: "back"

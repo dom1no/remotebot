@@ -7,11 +7,8 @@ namespace Bot\Interactions;
 use FondBot\Conversation\Interaction;
 use FondBot\Drivers\ReceivedMessage;
 use FondBot\Contracts\Cache;
-use FondBot\Templates\Attachment;
 use Bot\Services\RestSendService;
-use League\Flysystem\Filesystem;
-use League\Flysystem\Adapter\Local;
-
+use Bot\Services\Storage;
 
 class RestParamsInteraction extends Interaction
 {
@@ -92,7 +89,7 @@ class RestParamsInteraction extends Interaction
 
         if ($response !== false) {
             if (mb_strlen($response) > 2000) {
-                $attachment = $this->createAttachment($response);
+                $attachment = resolve(Storage::class)->create($response);
 
                 $this->sendAttachment($attachment);
                 // $this->sendMessage($response);

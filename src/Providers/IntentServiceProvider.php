@@ -8,6 +8,7 @@ use Bot\Intents\ExampleIntent;
 use Bot\Intents\RestIntent;
 use Bot\Intents\PullProjectIntent;
 use Bot\Intents\StoreTokenIntent;
+use Bot\Intents\ExecCommandIntent;
 use FondBot\Conversation\FallbackIntent;
 use FondBot\Conversation\IntentServiceProvider as BaseIntentServiceProvider;
 
@@ -25,6 +26,7 @@ class IntentServiceProvider extends BaseIntentServiceProvider
             RestIntent::class,
             PullProjectIntent::class,
             StoreTokenIntent::class,
+            ExecCommandIntent::class,
         ];
     }
 
